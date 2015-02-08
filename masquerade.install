@@ -113,7 +113,7 @@ function masquerade_update_6002() {
 function masquerade_update_6003() {
   $users = variable_get('masquerade_quick_switches', NULL);
   if (!empty($users)) {
-    $user_ids = drupal_explode_tags($users);
+    $user_ids = backdrop_explode_tags($users);
     if (!empty($user_ids)) {
       variable_set('masquerade_quick_switches', $user_ids);
     }
@@ -176,7 +176,7 @@ function masquerade_update_7000() {
  */
 function masquerade_update_7001() {
   db_update('block')
-    ->fields(array('cache' => DRUPAL_NO_CACHE))
+    ->fields(array('cache' => BACKDROP_NO_CACHE))
     ->condition('module', 'masquerade')
     ->condition('delta', 'masquerade')
     ->execute();

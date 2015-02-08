@@ -145,7 +145,7 @@ function masquerade_menu() {
   $items['admin/config/people/masquerade'] = array(
     'title' => 'Masquerade',
     'description' => 'Masquerade module allows administrators to masquerade as other users.',
-    'page callback' => 'drupal_get_form',
+    'page callback' => 'backdrop_get_form',
     'page arguments' => array('masquerade_admin_settings'),
     'access callback' => 'user_access',
     'access arguments' => array('administer masquerade'),
@@ -181,10 +181,10 @@ function masquerade_menu_alter(&$items) {
 function masquerade_translated_menu_link_alter(&$item, $map) {
   if (isset($item['page_callback'])) {
     if ($item['page_callback'] == 'masquerade_switch_user_page' && isset($map[2])) {
-      $item['localized_options']['query']['token'] = drupal_get_token('masquerade/switch/' . $map[2]);
+      $item['localized_options']['query']['token'] = backdrop_get_token('masquerade/switch/' . $map[2]);
     }
     elseif ($item['page_callback'] == 'masquerade_switch_back_page') {
-      $item['localized_options']['query']['token'] = drupal_get_token('masquerade/unswitch');
+      $item['localized_options']['query']['token'] = backdrop_get_token('masquerade/unswitch');
     }
   }
 }
@@ -291,7 +291,7 @@ function masquerade_admin_settings() {
     '#type' => 'textfield',
     '#title' => t('Masquerade Block <em>Quick Switch</em> users'),
     '#autocomplete_path' => 'masquerade/autocomplete-users',
-    '#default_value' => drupal_implode_tags($quick_switch_users),
+    '#default_value' => backdrop_implode_tags($quick_switch_users),
     '#description' => t('Enter the usernames, separated by commas, of accounts to show as quick switch links in the Masquerade block.'),
     '#maxlength' => NULL,
   );
@@ -314,7 +314,7 @@ function masquerade_admin_settings_validate($form, &$form_state) {
   $form_state['masquerade_rebuild_menu'] = (variable_get('masquerade_test_user', '') != $form_state['values']['masquerade_test_user']);
 
   // A comma-separated list of users.
-  $masquerade_switches = drupal_explode_tags($form_state['values']['masquerade_quick_switches']);
+  $masquerade_switches = backdrop_explode_tags($form_state['values']['masquerade_quick_switches']);
   // Change user names to user ID's for system_settings_form_submit() to save.
   $masquerade_uids = array();
   foreach ($masquerade_switches as $switch_user) {
@@ -424,7 +424,7 @@ function masquerade_user_view($account, $view_mode, $langcode) {
       '#markup' => l(t('Masquerade as !user', array('!user' => $account->name)),
         'masquerade/switch/' . $account->uid,
         array('query' => array(
-          'token' => drupal_get_token('masquerade/switch/' . $account->uid)),
+          'token' => backdrop_get_token('masquerade/switch/' . $account->uid)),
           'destination' => $_GET['q'],
           'attributes' => array('class' => array('masquerade-switch')),
         )),
@@ -464,7 +464,7 @@ function masquerade_form_user_profile_form_alter(&$form, &$form_state, $form_id)
     '#title' => t('Enter the users this user is able to masquerade as'),
     '#description' => t('Enter a comma separated list of user names that this user can masquerade as.'),
     '#autocomplete_path' => 'masquerade/autocomplete-user',
-    '#default_value' => drupal_implode_tags($masquerade_users),
+    '#default_value' => backdrop_implode_tags($masquerade_users),
     '#maxlength' => NULL,
   );
   $form['#validate'][] = 'masquerade_user_validate';
@@ -476,7 +476,7 @@ function masquerade_form_user_profile_form_alter(&$form, &$form_state, $form_id)
  */
 function masquerade_user_validate(&$form, $form_state) {
   if (isset($form_state['values']['masquerade_users'])) {
-    $users = drupal_explode_tags($form_state['values']['masquerade_users']);
+    $users = backdrop_explode_tags($form_state['values']['masquerade_users']);
     foreach ($users as $username) {
       if (!_masquerade_user_load($username)) {
         form_set_error('masquerade_users', t('%user is not a valid user name.', array('%user' => $username)));
@@ -503,7 +503,7 @@ function masquerade_user_update(&$edit, $account, $category) {
     $query->condition('uid_from', $account->uid);
     $query->execute();
     // Save users from settings form.
-    $users = drupal_explode_tags($edit['masquerade_users']);
+    $users = backdrop_explode_tags($edit['masquerade_users']);
     $query = db_insert('masquerade_users')->fields(array('uid_from', 'uid_to'));
     foreach ($users as $username) {
       if ($to_user = _masquerade_user_load($username)) {
@@ -557,7 +557,7 @@ function masquerade_block_info() {
   $blocks = array();
   $blocks['masquerade'] = array(
     'info' => t('Masquerade'),
-    'cache' => DRUPAL_NO_CACHE,
+    'cache' => BACKDROP_NO_CACHE,
   );
   return $blocks;
 }
@@ -571,7 +571,7 @@ function masquerade_block_view($delta = '') {
     case 'masquerade':
       if (isset($_SESSION['masquerading']) || (user_access('masquerade as user') || user_access('masquerade as admin'))) {
         $block['subject'] = t('Masquerade');
-        $block['content'] = drupal_get_form('masquerade_block_1');
+        $block['content'] = backdrop_get_form('masquerade_block_1');
       }
       break;
   }
@@ -586,7 +586,7 @@ function masquerade_block_1() {
   $quick_switch_links = array();
   $markup_value = '';
   if (isset($_SESSION['masquerading'])) {
-    $quick_switch_links[] = l(t('Switch back'), 'masquerade/unswitch', array('query' => array('token' => drupal_get_token('masquerade/unswitch'))));
+    $quick_switch_links[] = l(t('Switch back'), 'masquerade/unswitch', array('query' => array('token' => backdrop_get_token('masquerade/unswitch'))));
     if ($user->uid > 0) {
       $markup_value = t('You are masquerading as <a href="@user-url">%masq_as</a>.', array('@user-url' => url('user/' . $user->uid), '%masq_as' => $user->name));
     }
@@ -607,11 +607,11 @@ function masquerade_block_1() {
         if (isset($account->uid)) {
           $switch_link = 'masquerade/switch/' . $account->uid;
           if ($account->uid) {
-            $quick_switch_links[] = l($account->name, $switch_link, array('query' => array('token' => drupal_get_token($switch_link))));
+            $quick_switch_links[] = l($account->name, $switch_link, array('query' => array('token' => backdrop_get_token($switch_link))));
           }
           if ($switch_user == 0) {
             $account->name = variable_get('anonymous', t('Anonymous'));
-            $quick_switch_links[] = l($account->name, $switch_link, array('query' => array('token' => drupal_get_token($switch_link))));
+            $quick_switch_links[] = l($account->name, $switch_link, array('query' => array('token' => backdrop_get_token($switch_link))));
           }
         }
       }
@@ -669,7 +669,7 @@ function masquerade_block_1_validate($form, &$form_state) {
                   ->fetchField();
   }
   if (isset($_SESSION['masquerading'])) {
-    form_set_error('masquerade_user_field', t('You are already masquerading. Please <a href="@unswitch">switch back</a> to your account to masquerade as another user.', array('@unswitch' => url('masquerade/unswitch', array('query' => array('token' => drupal_get_token('masquerade/unswitch')))))));
+    form_set_error('masquerade_user_field', t('You are already masquerading. Please <a href="@unswitch">switch back</a> to your account to masquerade as another user.', array('@unswitch' => url('masquerade/unswitch', array('query' => array('token' => backdrop_get_token('masquerade/unswitch')))))));
   }
   if ($allowed === FALSE) {
     form_set_error('masquerade_user_field', t('You are not allowed to masquerade as the selected user.'));
@@ -705,10 +705,10 @@ function masquerade_block_1_submit($form, &$form_state) {
   //unset($form);
   $masq_user = _masquerade_user_load($form_state['values']['masquerade_user_field']);
   if (!masquerade_switch_user($masq_user->uid)) {
-    drupal_access_denied();
+    backdrop_access_denied();
   }
   else {
-    drupal_goto($_SERVER['HTTP_REFERER']);
+    backdrop_goto($_SERVER['HTTP_REFERER']);
   }
 }
 
@@ -732,7 +732,7 @@ function masquerade_autocomplete($string) {
   if (module_exists('devel')) {
     $GLOBALS['devel_shutdown'] = FALSE;
   }
-  drupal_json_output($matches);
+  backdrop_json_output($matches);
 }
 
 /**
@@ -748,9 +748,9 @@ function masquerade_autocomplete($string) {
 function masquerade_autocomplete_multiple($string, $add_anonymous = TRUE) {
   $matches = array();
   // The user enters a comma-separated list of users. We only autocomplete the last user.
-  $users_typed = drupal_explode_tags($string);
+  $users_typed = backdrop_explode_tags($string);
   // Fetch last string.
-  $last_string = drupal_strtolower(array_pop($users_typed));
+  $last_string = backdrop_strtolower(array_pop($users_typed));
   if ($last_string) {
     $prefix = count($users_typed) ? implode(', ', $users_typed) . ', ' : '';
     if ($add_anonymous) {
@@ -784,18 +784,18 @@ function masquerade_autocomplete_multiple($string, $add_anonymous = TRUE) {
   if (module_exists('devel')) {
     $GLOBALS['devel_shutdown'] = FALSE;
   }
-  drupal_json_output($matches);
+  backdrop_json_output($matches);
 }
 
 /**
  * Page callback to switch users.
  */
 function masquerade_switch_user_page($uid) {
-  if (isset($_GET['token']) && drupal_valid_token($_GET['token'], 'masquerade/switch/' . $uid) && masquerade_switch_user($uid)) {
-    drupal_goto($_SERVER['HTTP_REFERER']);
+  if (isset($_GET['token']) && backdrop_valid_token($_GET['token'], 'masquerade/switch/' . $uid) && masquerade_switch_user($uid)) {
+    backdrop_goto($_SERVER['HTTP_REFERER']);
   }
   else {
-    drupal_access_denied();
+    backdrop_access_denied();
   }
 }
 
@@ -811,9 +811,9 @@ function masquerade_switch_user_page($uid) {
 function masquerade_switch_user($uid) {
   global $user;
   if (!is_numeric($uid)) {
-    drupal_set_message(t('A user id was not correctly passed to the switching function.'));
+    backdrop_set_message(t('A user id was not correctly passed to the switching function.'));
     watchdog('masquerade', 'The user id provided to switch users was not numeric.', NULL, WATCHDOG_ERROR);
-    return drupal_goto($_SERVER['HTTP_REFERER']);
+    return backdrop_goto($_SERVER['HTTP_REFERER']);
   }
 
   $new_user = user_load($uid);
@@ -839,13 +839,13 @@ function masquerade_switch_user($uid) {
   }
 
   if (variable_get('maintenance_mode', 0) && !user_access('access site in maintenance mode', $new_user)) {
-    drupal_set_message(t('It is not possible to masquerade in off-line mode as %user does not have the %config-perm permission. Please <a href="@site-maintenance">set the site status</a> to "online" to masquerade as %user.', array('%user' => $new_user->name, '%config-perm' => 'use the site in maintenance mode', '@site-maintenance' => url('admin/settings/site-maintenance'))));
+    backdrop_set_message(t('It is not possible to masquerade in off-line mode as %user does not have the %config-perm permission. Please <a href="@site-maintenance">set the site status</a> to "online" to masquerade as %user.', array('%user' => $new_user->name, '%config-perm' => 'use the site in maintenance mode', '@site-maintenance' => url('admin/settings/site-maintenance'))));
     return FALSE;
   }
 
   // Call logout hooks when switching from original user.
   module_invoke_all('user_logout', $user);
-  drupal_session_regenerate();
+  backdrop_session_regenerate();
 
   $query = db_insert('masquerade');
   $query->fields(array(
@@ -857,7 +857,7 @@ function masquerade_switch_user($uid) {
   // switch user
 
   watchdog('masquerade', 'User %user now masquerading as %masq_as.', array('%user' => $user->name, '%masq_as' => $new_user->name ? $new_user->name : variable_get('anonymous', t('Anonymous'))), WATCHDOG_INFO);
-  drupal_set_message(t('You are now masquerading as !masq_as.', array('!masq_as' => theme('username', array('account' => $new_user)))));
+  backdrop_set_message(t('You are now masquerading as !masq_as.', array('!masq_as' => theme('username', array('account' => $new_user)))));
   $user->masquerading = $new_user->uid;
   $user = $new_user;
 
@@ -872,15 +872,15 @@ function masquerade_switch_user($uid) {
  * Allows a user who is currently masquerading to become a new user.
  */
 function masquerade_switch_back_page() {
-  if (isset($_GET['token']) && drupal_valid_token($_GET['token'], 'masquerade/unswitch')) {
+  if (isset($_GET['token']) && backdrop_valid_token($_GET['token'], 'masquerade/unswitch')) {
     global $user;
     $olduser = $user;
     masquerade_switch_back();
-    drupal_set_message(t('You are no longer masquerading as !masq_as and are now logged in as !user.', array('!user' => theme('username', array('account' => $user)), '!masq_as' => theme('username', array('account' => $olduser)))));
-    drupal_goto($_SERVER['HTTP_REFERER']);
+    backdrop_set_message(t('You are no longer masquerading as !masq_as and are now logged in as !user.', array('!user' => theme('username', array('account' => $user)), '!masq_as' => theme('username', array('account' => $olduser)))));
+    backdrop_goto($_SERVER['HTTP_REFERER']);
   }
   else {
-    drupal_access_denied();
+    backdrop_access_denied();
   }
 }
 
@@ -905,7 +905,7 @@ function masquerade_switch_back() {
 
   // Call logout hooks when switching from masquerading user.
   module_invoke_all('user_logout', $user);
-  drupal_session_regenerate();
+  backdrop_session_regenerate();
 
   $user = user_load($uid);
 

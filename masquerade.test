@@ -7,7 +7,7 @@
  * Test the form permissions and switch ability of the Masquarade module.
  */
 
-class MasqueradeTestCase extends DrupalWebTestCase {
+class MasqueradeTestCase extends BackdropWebTestCase {
   public static function getInfo() {
     return array(
       'name' => 'Masquerade tests',
@@ -31,32 +31,32 @@ class MasqueradeTestCase extends DrupalWebTestCase {
       'masquerade as user',
       'masquerade as any user',
     );
-    $admin = $this->drupalCreateUser($admin_perms);
-    $user = $this->drupalCreateUser();
+    $admin = $this->backdropCreateUser($admin_perms);
+    $user = $this->backdropCreateUser();
 
-    $this->drupalLogin($admin);
+    $this->backdropLogin($admin);
 
     // Test accessing the admin form
-    $this->drupalGet('admin/config/people/masquerade');
+    $this->backdropGet('admin/config/people/masquerade');
     $this->assertText(t('Roles that are considered "administrators" for masquerading'));
 
     // Test enabling the Masquerade block
-    $this->drupalGet('admin/structure/block/manage/masquerade/masquerade/configure');
+    $this->backdropGet('admin/structure/block/manage/masquerade/masquerade/configure');
     $this->assertText(t("'@module' block", array('@module' => 'Masquerade')));
     $edit = array(
       'regions[bartik]' => 'content',
       'regions[seven]' => 'content',
     );
-    $this->drupalPost('admin/structure/block/manage/masquerade/masquerade/configure', $edit, t('Save block'));
+    $this->backdropPost('admin/structure/block/manage/masquerade/masquerade/configure', $edit, t('Save block'));
     $this->assertText(t('The block configuration has been saved.'));
 
     // Test switch from user profile
-    $this->drupalGet("user/{$user->uid}");
+    $this->backdropGet("user/{$user->uid}");
     $this->clickLink(t('Masquerade as @name', array('@name' => $user->name)));
     $this->assertText(t('You are now masquerading as @name.', array('@name' => $user->name)));
 
     // Test unswitch
-    $this->drupalGet('');
+    $this->backdropGet('');
     $this->clickLink(t('Switch back'));
     $this->assertText(t('You are no longer masquerading as @name and are now logged in as @admin.',
                         array('@name' => $user->name, '@admin' => $admin->name)));
@@ -65,7 +65,7 @@ class MasqueradeTestCase extends DrupalWebTestCase {
     $edit = array(
       'masquerade_user_field' => $user->name,
     );
-    $this->drupalPost('', $edit, t('Go'));
+    $this->backdropPost('', $edit, t('Go'));
     $this->assertText(t('You are now masquerading as @name.', array('@name' => $user->name)));
   }
 
