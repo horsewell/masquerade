@@ -1,0 +1,10 @@
+{
+    "_config_name": "masquerade.settings",
+    "admin_roles": {
+        "administrator": "administrator",
+        "anonymous": 0,
+        "authenticated": 0
+    },
+    "test_user": "",
+    "quick_switches": []
+}

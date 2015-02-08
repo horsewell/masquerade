@@ -1,0 +1,6 @@
+name = Masquerade Test
+description = Testing module for masquerade functionality.
+package = Testing
+backdrop = 1.x
+files[] = masquerade.tests
+hidden = TRUE
