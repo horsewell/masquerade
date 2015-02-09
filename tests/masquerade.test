@@ -8,14 +8,7 @@
  */
 
 class MasqueradeTestCase extends BackdropWebTestCase {
-  public static function getInfo() {
-    return array(
-      'name' => 'Masquerade tests',
-      'description' => 'Tests user switching with the Masquerade module.',
-      'group' => 'Masquerade',
-    );
-  }
-
+	
   public function setUp() {
     parent::setUp('masquerade');
   }

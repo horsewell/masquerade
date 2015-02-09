@@ -1,6 +1,6 @@
-name = Masquerade Test
+[MasqueradeTestCase]
 description = Testing module for masquerade functionality.
 package = Testing
 backdrop = 1.x
-files[] = masquerade.tests
+file = masquerade.test
 hidden = TRUE
